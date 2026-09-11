@@ -1,0 +1,6 @@
+{
+  "name": "Kabadiwala Connect Admin Dashboard",
+  "description": "Operational Admin Dashboard for Kabadiwala Connect (PS 26229) bringing informal e-waste collectors into the formal recycling chain.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
