@@ -1,7 +1,0 @@
-{
-  "name": "Kabadiwala Connect - Government Impact Analytics Dashboard",
-  "description": "Aggregated ecosystem monitoring, traceability, e-waste material flows, recycler authorization, and social-economic impact analytics for regulatory authorities.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
-
