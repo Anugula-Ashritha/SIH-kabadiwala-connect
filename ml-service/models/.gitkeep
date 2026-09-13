@@ -1,0 +1,5 @@
+# Trained models and evaluation artifacts will be saved here:
+# - ewaste_classifier.keras
+# - classes.json
+# - confusion_matrix.png
+# - evaluation_report.txt
