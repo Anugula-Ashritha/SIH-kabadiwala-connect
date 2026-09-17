@@ -2,7 +2,7 @@
  * Machine Learning Image Classification Service for Kabadiwala Connect
  *
  * Real ML API endpoint:
- *   POST http://127.0.0.1:8000/api/ml/classify
+ *   POST /api/ml/classify
  *   Expects: multipart/form-data with field name "file"
  *   Response: { "material": "PCB", "confidence": 0.983 }
  *
@@ -15,7 +15,7 @@ import { offlineStorageService } from './offlineStorageService';
 // Configurable ML API endpoint constant
 export const ML_API_URL =
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_ML_API_URL) ||
-  'http://127.0.0.1:8000/api/ml/classify';
+  'https://kabadiwala-connect-ml.onrender.com/api/ml/classify';
 
 export interface ClassificationResult {
   materialId: string;
@@ -230,7 +230,7 @@ async function stringToBlob(dataOrUrl: string): Promise<Blob> {
 /**
  * Classifies an e-waste scrap image.
  *
- * ONLINE: Sends multipart/form-data with "file" to http://127.0.0.1:8000/api/ml/classify
+ * ONLINE: Sends multipart/form-data with "file" to the deployed ML API.
  * OFFLINE: Returns immediate offline fallback without network calls
  */
 export async function classifyMaterialImage(
