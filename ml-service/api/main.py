@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import io
@@ -20,28 +20,30 @@ predictor = EwastePredictor()
 
 @app.get("/")
 def root():
-    return {
-        "message": "Kabadiwala Connect ML API is running"
-    }
+    return {"message": "Kabadiwala Connect ML API is running"}
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "model": "loaded", "classes": predictor.classes}
 
 
 @app.post("/api/ml/classify")
 async def classify_material(file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        if not image_bytes:
+            raise HTTPException(status_code=400, detail="Empty image file")
 
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         result = predictor.predict(image)
 
-        print("PREDICTOR RESULT:", result)
-
         return {
-             "material": result["predicted_material"],
-              "confidence": result["confidence"] / 100
-
+            "material": result["predicted_material"],
+            "confidence": result["confidence"] / 100,
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
-        return {
-            "error": str(e)
-        }
+        raise HTTPException(status_code=500, detail=str(e))
