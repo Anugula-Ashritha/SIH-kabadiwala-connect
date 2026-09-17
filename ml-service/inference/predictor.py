@@ -13,6 +13,7 @@ from PIL import Image
 from tensorflow.keras.applications.mobilenet_v3 import preprocess_input
 
 DEFAULT_CLASSES = ["Battery", "Mobile", "PCB"]
+BASE_DIR = Path(__file__).resolve().parents[1]
 
 
 class EwastePredictor:
@@ -20,8 +21,8 @@ class EwastePredictor:
 
     def __init__(
         self,
-        model_path: Union[str, Path] = "models/ewaste_classifier.keras",
-        classes_path: Optional[Union[str, Path]] = "models/classes.json",
+        model_path: Union[str, Path] = BASE_DIR / "models" / "ewaste_classifier.keras",
+        classes_path: Optional[Union[str, Path]] = BASE_DIR / "models" / "classes.json",
         img_size: int = 224,
     ):
         self.model_path = Path(model_path).resolve()
@@ -31,18 +32,17 @@ class EwastePredictor:
         if not self.model_path.exists():
             raise FileNotFoundError(
                 f"Trained model not found at: {self.model_path}\n"
-                f"Please train the model first by running:\n"
-                f'  python train.py --data_dir "path\\to\\modified-dataset"'
+                "Make sure models/ewaste_classifier.keras is present in the deployment."
             )
 
         print(f"Loading trained model from:\n  {self.model_path}")
-       
+
         self.model = tf.keras.models.load_model(
             str(self.model_path),
-            custom_objects={"preprocess_input": preprocess_input}
+            custom_objects={"preprocess_input": preprocess_input},
+            compile=False,
         )
 
-        # Load class names
         self.classes: List[str] = self._load_classes()
         print(f"Loaded classes: {self.classes}")
 
@@ -53,7 +53,7 @@ class EwastePredictor:
                     data = json.load(f)
                     if isinstance(data, list):
                         return data
-                    elif isinstance(data, dict) and "classes" in data:
+                    if isinstance(data, dict) and "classes" in data:
                         return data["classes"]
             except Exception as e:
                 print(f"[Warning] Could not parse {self.classes_path} ({e}). Using default classes.")
@@ -61,12 +61,7 @@ class EwastePredictor:
         return list(DEFAULT_CLASSES)
 
     def preprocess_image(self, image_input: Union[str, Path, Image.Image]) -> np.ndarray:
-        """
-        Loads and prepares an image for inference:
-        - Converts to RGB
-        - Resizes to (img_size, img_size) using high-quality resampling
-        - Adds batch dimension: (1, img_size, img_size, 3)
-        """
+        """Prepare an image for model inference."""
         if isinstance(image_input, (str, Path)):
             img_path = Path(image_input).resolve()
             if not img_path.exists():
@@ -79,19 +74,10 @@ class EwastePredictor:
 
         img = img.resize((self.img_size, self.img_size), Image.Resampling.BILINEAR)
         img_array = np.array(img, dtype=np.float32)
-        img_batch = np.expand_dims(img_array, axis=0)
-        return img_batch
+        return np.expand_dims(img_array, axis=0)
 
     def predict(self, image_input: Union[str, Path, Image.Image]) -> Dict[str, any]:
-        """
-        Runs model prediction on an image.
-        Returns:
-            Dict with:
-                - predicted_material: str (e.g. 'PCB')
-                - confidence: float (e.g. 94.2)
-                - confidence_str: str (e.g. '94.2%')
-                - probabilities: Dict[str, float]
-        """
+        """Run model prediction and return material/confidence information."""
         img_batch = self.preprocess_image(image_input)
         preds = self.model.predict(img_batch, verbose=0)[0]
 
